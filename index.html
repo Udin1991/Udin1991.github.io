@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bumper Video</title>
+    <style>
+        video {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 20px; /* Adjust the roundness */
+            overflow: hidden;
+        }
+        #play-btn {
+            display: none; /* Hidden by default */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            padding: 10px 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #video-container {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="video-container">
+        <video id="bumper-video" autoplay playsinline>
+            <source src="Bumper PembaTIK 2024 Final.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <button id="play-btn">Play Video</button>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const video = document.getElementById('bumper-video');
+            const playButton = document.getElementById('play-btn');
+
+            video.play().catch(function(error) {
+                console.log('Autoplay with sound failed, user interaction required.', error);
+                // Show the play button in case autoplay fails
+                playButton.style.display = 'block';
+            });
+
+            video.onended = function() {
+                window.location.href = "story.html";
+            };
+
+            // Play video manually if user clicks play button
+            playButton.addEventListener('click', function() {
+                video.play();
+                playButton.style.display = 'none'; // Hide the button after play
+            });
+        };
+    </script>
+
+</body>
+</html>
