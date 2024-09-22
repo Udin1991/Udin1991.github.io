@@ -1,0 +1,15 @@
+{
+    "title": "SOAL MATEMATIKA",
+    "questions": [
+        {
+            "question": "Apa hasil dari 5 + 3?",
+            "answer": "8",
+            "image": "gambar/1.png"
+        },
+        {
+            "question": "Apa hasil dari 15 - 7?",
+            "answer": "8"
+        }
+
+    ]
+}

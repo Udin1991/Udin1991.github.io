@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Dinamis dengan Gambar dan SweetAlert</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- SweetAlert CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('bg.jpg'); /* Ganti dengan URL gambar background Anda */
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: rgba(255, 255, 255, 0.9); /* Warna latar belakang dengan transparansi */
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        #user-info {
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        #score {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        #final-page {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-container">
+        <h2 id="question-title" class="text-center mb-4"></h2> <!-- Judul Kuis -->
+        
+        <div id="start-container">
+            <h2 class="text-center mb-4">Masukkan Data Diri</h2>
+            <div class="mb-3">
+                <input type="text" id="name" class="form-control" placeholder="Nama" required>
+            </div>
+            <div class="mb-3">
+                <input type="text" id="class" class="form-control" placeholder="Kelas" required>
+            </div>
+            <div class="mb-3">
+                <input type="text" id="absen" class="form-control" placeholder="Nomor Absen" required>
+            </div>
+            <div class="text-center">
+                <button class="btn btn-primary" onclick="startQuiz()">Mulai Kuis</button>
+            </div>
+        </div>
+
+        <div id="quiz-section" style="display: none;">
+            <div id="user-info" class="text-center mb-4">
+                <p id="display-name" class="mb-1"></p>
+                <p id="display-class" class="mb-1"></p>
+                <p id="display-absen" class="mb-1"></p>
+            </div>
+
+            <div id="question-container" class="text-center">
+                <h3 id="question" class="mb-4">Soal</h3>
+                <img id="question-image" class="img-fluid mb-3" style="display: none;" />
+                <div class="mb-3">
+                    <input type="text" id="answer" class="form-control" placeholder="Jawaban Anda">
+                </div>
+                <button class="btn btn-success" onclick="submitAnswer()">Submit Jawaban</button>
+                <p id="score" class="text-center mt-4" style="display: none;"></p> <!-- Menampilkan skor -->
+            </div>
+        </div>
+
+        <div id="final-page" class="text-center">
+            <h2>Selamat!</h2>
+            <p id="final-message"></p>
+            <p id="final-class" class="mb-1"></p>
+            <p id="final-absen" class="mb-1"></p>
+            <h3>Anda telah menyelesaikan kuis.</h3>
+            <p>Anda tidak dapat menginput soal kembali.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let currentQuestion = 0;
+    let correctAnswers = 0;
+    const maxScore = 100; // Skor maksimal adalah 100
+    let scorePerQuestion = 0;
+    let userData = {};
+    let questions = []; // Tempat untuk soal yang diambil dari JSON
+    let quizTitle = ""; // Tempat untuk judul kuis
+
+    // Fungsi untuk memuat soal dari file JSON
+    async function loadQuestions() {
+        const response = await fetch('questions.json'); // Ganti dengan path ke file JSON Anda
+        const data = await response.json();
+        quizTitle = data.title; // Ambil judul dari JSON
+        questions = data.questions; // Ambil soal dari JSON
+        scorePerQuestion = maxScore / questions.length; // Hitung nilai per soal dinamis
+
+        // Tampilkan judul kuis di halaman
+        document.getElementById("question-title").textContent = quizTitle;
+    }
+
+    // Fungsi untuk mulai kuis dan simpan data diri
+    async function startQuiz() {
+        await loadQuestions(); // Muat soal sebelum memulai kuis
+
+        const name = document.getElementById("name").value.trim();
+        const kelas = document.getElementById("class").value.trim();
+        const absen = document.getElementById("absen").value.trim();
+
+        if (!name || !kelas || !absen) {
+            alert("Mohon lengkapi data diri!");
+            return;
+        }
+
+        userData = { name, kelas, absen };
+
+        // Tampilkan data di bagian atas kuis
+        document.getElementById("display-name").textContent = `Nama: ${name}`;
+        document.getElementById("display-class").textContent = `Kelas: ${kelas}`;
+        document.getElementById("display-absen").textContent = `Nomor Absen: ${absen}`;
+
+        document.getElementById("start-container").style.display = "none";
+        document.getElementById("quiz-section").style.display = "block";
+        document.getElementById("user-info").style.display = "block";
+        document.getElementById("score").style.display = "block"; // Tampilkan elemen skor
+
+        loadQuestion();
+    }
+
+    // Fungsi untuk menampilkan soal
+    function loadQuestion() {
+        const current = questions[currentQuestion];
+        document.getElementById("question").textContent = `Soal ${currentQuestion + 1}: ${current.question}`;
+        document.getElementById("answer").value = "";
+        document.getElementById("score").textContent = `Skor Anda: ${correctAnswers * scorePerQuestion}`; // Update skor
+
+        // Tampilkan gambar jika ada
+        const imageElement = document.getElementById("question-image");
+        if (current.image) {
+            imageElement.src = current.image;
+            imageElement.style.display = "block";
+        } else {
+            imageElement.style.display = "none";
+        }
+    }
+
+    // Fungsi untuk memeriksa jawaban
+    function submitAnswer() {
+        const userAnswer = document.getElementById("answer").value.trim();
+        const correctAnswer = questions[currentQuestion].answer;
+
+        if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+            correctAnswers++;
+            Swal.fire({
+                icon: 'success',
+                title: 'Jawaban Benar!',
+                text: 'Klik "Next" untuk lanjut ke soal berikutnya.',
+                confirmButtonText: 'Next',
+            }).then(() => {
+                nextQuestion();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Jawaban Salah!',
+                text: 'Silakan coba lagi.',
+                confirmButtonText: 'OK'
+            });
+        }
+    }
+
+    // Fungsi untuk pindah ke soal berikutnya
+    function nextQuestion() {
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            displayFinalPage();
+        }
+    }
+
+    // Fungsi untuk menampilkan halaman akhir
+    function displayFinalPage() {
+        document.getElementById("quiz-section").style.display = "none";
+        document.getElementById("final-class").textContent = `Kelas: ${userData.kelas}`;
+        document.getElementById("final-absen").textContent = `Nomor Absen: ${userData.absen}`;
+        document.getElementById("final-message").textContent = `${userData.name} telah menyelesaikan kuis dengan skor ${correctAnswers * scorePerQuestion} dari ${maxScore}.`;
+        document.getElementById("final-page").style.display = "block";
+    }
+</script>
+
+</body>
+</html>
